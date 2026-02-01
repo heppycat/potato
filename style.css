@@ -1,0 +1,333 @@
+/* style.css - Focus Tracker - Calendar Heatmap */
+
+:root {
+    --bg-dark: #0d1117;
+    --bg-card: #161b22;
+    --text-primary: #e6edf3;
+    --text-secondary: #8b949e;
+    --border-color: #30363d;
+    --shadow-color: rgba(0, 0, 0, 0.3);
+    --month-gap: #21262d;
+    
+    /* Button colors */
+    --btn-primary: #238636;
+    --btn-secondary: #21262d;
+    --btn-danger: #da3633;
+    --btn-hover: #2ea043;
+    --btn-active: #196c2e;
+    
+    /* Heatmap colors - GitHub dark inspired */
+    --heatmap-empty: #161b22;
+    --heatmap-level-1: #0e4429;
+    --heatmap-level-2: #006d32;
+    --heatmap-level-3: #26a641;
+    --heatmap-level-4: #39d353;
+    
+    /* Spacing */
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    
+    /* Border radius */
+    --radius-sm: 3px;
+    --radius-md: 6px;
+    --radius-lg: 12px;
+    
+    /* Calendar specific */
+    --cell-size: 16px;
+    --cell-gap: 3px;
+    --month-padding: 12px;
+    --month-border: 1px solid var(--border-color);
+}
+
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: var(--spacing-lg);
+}
+
+#root {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Timer section */
+#timer-section {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    text-align: center;
+    border: var(--month-border);
+}
+
+#timer-display {
+    font-size: 5rem;
+    font-weight: 300;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: var(--spacing-lg);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    letter-spacing: -2px;
+}
+
+#timer-controls {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+}
+
+#timer-controls button {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 250ms ease;
+    min-width: 100px;
+    outline: none;
+}
+
+#start-btn {
+    background-color: var(--btn-primary);
+    color: white;
+}
+
+#start-btn:hover {
+    background-color: var(--btn-hover);
+    transform: translateY(-1px);
+}
+
+#start-btn:active {
+    background-color: var(--btn-active);
+    transform: translateY(0);
+}
+
+#pause-btn {
+    background-color: var(--btn-secondary);
+    color: var(--text-primary);
+}
+
+#pause-btn:hover {
+    background-color: #2d333b;
+    transform: translateY(-1px);
+}
+
+#pause-btn:active {
+    background-color: #373e47;
+    transform: translateY(0);
+}
+
+#reset-btn {
+    background-color: var(--btn-danger);
+    color: white;
+}
+
+#reset-btn:hover {
+    background-color: #f85149;
+    transform: translateY(-1px);
+}
+
+#reset-btn:active {
+    background-color: #c42d2a;
+    transform: translateY(0);
+}
+
+/* Calendar Heatmap Section */
+#heatmap-section {
+    background-color: var(--bg-card);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: 0 8px 24px var(--shadow-color);
+    border: var(--month-border);
+}
+
+/* Horizontal month container */
+#heatmap-calendar {
+    display: flex;
+    gap: var(--spacing-lg);
+    overflow-x: auto;
+    padding: var(--spacing-sm) 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-color) var(--bg-dark);
+}
+
+#heatmap-calendar::-webkit-scrollbar {
+    height: 8px;
+}
+
+#heatmap-calendar::-webkit-scrollbar-track {
+    background: var(--bg-dark);
+    border-radius: var(--radius-sm);
+    margin: 0 var(--spacing-lg);
+}
+
+#heatmap-calendar::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: var(--radius-sm);
+}
+
+#heatmap-calendar::-webkit-scrollbar-thumb:hover {
+    background-color: #8b949e;
+}
+
+/* Individual month container */
+.month-container {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    min-width: fit-content;
+    padding: var(--month-padding);
+    border-radius: var(--radius-md);
+    background-color: rgba(22, 27, 34, 0.7);
+    border: var(--month-border);
+    transition: border-color 250ms ease;
+}
+
+.month-container:hover {
+    border-color: var(--heatmap-level-3);
+}
+
+/* Month label */
+.month-label {
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    margin-bottom: var(--spacing-md);
+    color: var(--text-primary);
+    padding-bottom: var(--spacing-xs);
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Month grid layout */
+.month-grid {
+    display: grid;
+    grid-template-columns: repeat(7, var(--cell-size));
+    grid-auto-rows: var(--cell-size);
+    gap: var(--cell-gap);
+}
+
+/* Calendar cell */
+.calendar-cell {
+    width: var(--cell-size);
+    height: var(--cell-size);
+    border-radius: var(--radius-sm);
+    transition: all 300ms ease;
+    position: relative;
+}
+
+.calendar-cell:hover {
+    transform: scale(1.15);
+    z-index: 1;
+    box-shadow: 0 0 0 2px var(--bg-dark), 0 0 8px rgba(57, 211, 83, 0.3);
+}
+
+/* Empty cells (padding days) */
+.calendar-cell.empty-padding {
+    visibility: hidden;
+    pointer-events: none;
+}
+
+/* Intensity classes */
+.empty {
+    background-color: var(--heatmap-empty);
+    border: 1px solid var(--border-color);
+}
+
+.level-1 {
+    background-color: var(--heatmap-level-1);
+}
+
+.level-2 {
+    background-color: var(--heatmap-level-2);
+}
+
+.level-3 {
+    background-color: var(--heatmap-level-3);
+}
+
+.level-4 {
+    background-color: var(--heatmap-level-4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #timer-display {
+        font-size: 3.5rem;
+    }
+    
+    #timer-controls {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    #timer-controls button {
+        width: 200px;
+        max-width: 100%;
+    }
+    
+    :root {
+        --cell-size: 14px;
+        --spacing-lg: 16px;
+    }
+    
+    .month-label {
+        font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 480px) {
+    #timer-display {
+        font-size: 2.5rem;
+    }
+    
+    #heatmap-section {
+        padding: var(--spacing-md);
+    }
+    
+    :root {
+        --cell-size: 12px;
+        --month-padding: 8px;
+        --spacing-lg: 12px;
+    }
+    
+    .month-label {
+        font-size: 0.8rem;
+    }
+}
+
+/* Day of week headers (optional, can be added via JS) */
+.day-of-week {
+    display: grid;
+    grid-template-columns: repeat(7, var(--cell-size));
+    gap: var(--cell-gap);
+    margin-bottom: var(--spacing-xs);
+    padding: 0 var(--month-padding);
+}
+
+.day-header {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    height: var(--cell-size);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
