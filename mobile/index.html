@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Focus Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div id="root">
+        <header>
+            <h1>Focus Tracker</h1>
+            <p class="subtitle">Track your focus sessions</p>
+        </header>
+        
+        <main>
+            <section id="timer-section" class="card">
+                <div id="timer-display-container">
+                    <div id="timer-display">40:00</div>
+                    <div class="timer-hint">Tap to edit duration</div>
+                </div>
+                
+                <div id="timer-controls">
+                    <div class="button-row">
+                        <button id="start-btn" class="btn-primary">
+                            <span class="btn-icon">▶</span>
+                            <span class="btn-text">Start</span>
+                        </button>
+                        <button id="pause-btn" class="btn-secondary">
+                            <span class="btn-icon">⏸</span>
+                            <span class="btn-text">Pause</span>
+                        </button>
+                    </div>
+                    
+                    <div class="button-row">
+                        <button id="reset-btn" class="btn-secondary">
+                            <span class="btn-icon">↺</span>
+                            <span class="btn-text">Reset Timer</span>
+                        </button>
+                        <button id="reset-heatmap-btn" class="btn-danger">
+                            <span class="btn-icon">🗑</span>
+                            <span class="btn-text">Reset Data</span>
+                        </button>
+                    </div>
+                    
+                    <div class="button-row">
+                        <button id="demo-btn" class="btn-demo">
+                            <span class="btn-icon">🌟</span>
+                            <span class="btn-text">Demo Mode</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <section id="heatmap-section" class="card">
+                <div class="section-header">
+                    <h2>2026 Activity</h2>
+                    <div class="mobile-scroll-hint">
+                        <span class="hint-icon">⇆</span>
+                        Scroll horizontally
+                    </div>
+                </div>
+                
+                <div id="heatmap-calendar">
+                    <!-- Months will be rendered by JavaScript -->
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color empty"></div>
+                        <span>0 sessions</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color level-1"></div>
+                        <span>1 session</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color level-2"></div>
+                        <span>2-3 sessions</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color level-3"></div>
+                        <span>4-5 sessions</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color level-4"></div>
+                        <span>6+ sessions</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer>
+            <p>Data is stored locally on your device</p>
+            <p class="instructions">
+                • Tap timer to edit duration • Complete timer adds a session • Data auto-saves
+            </p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

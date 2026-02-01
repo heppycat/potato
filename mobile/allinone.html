@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Tracker</title>
+    <style>
+        /* ALL CSS EMBEDDED HERE */
+        :root {
+            --bg-dark: #0d1117;
+            --bg-card: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --border-color: #30363d;
+            --btn-primary: #238636;
+            --btn-secondary: #21262d;
+            --btn-danger: #da3633;
+            --heatmap-empty: #161b22;
+            --heatmap-level-1: #0e4429;
+            --heatmap-level-2: #006d32;
+            --heatmap-level-3: #26a641;
+            --heatmap-level-4: #39d353;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        #root {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        #timer-section {
+            background: var(--bg-card);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+        
+        #timer-display {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            font-variant-numeric: tabular-nums;
+        }
+        
+        #timer-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--btn-secondary);
+            color: white;
+            cursor: pointer;
+            min-width: 100px;
+        }
+        
+        #start-btn { background: var(--btn-primary); }
+        #reset-heatmap-btn { background: var(--btn-danger); }
+        
+        #heatmap-section {
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+        
+        #heatmap-calendar {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .month-container {
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .month-label {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 14px);
+            gap: 3px;
+        }
+        
+        .calendar-cell {
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+        }
+        
+        .empty { background: var(--heatmap-empty); border: 1px solid var(--border-color); }
+        .level-1 { background: var(--heatmap-level-1); }
+        .level-2 { background: var(--heatmap-level-2); }
+        .level-3 { background: var(--heatmap-level-3); }
+        .level-4 { background: var(--heatmap-level-4); }
+        
+        @media (max-width: 768px) {
+            #timer-display { font-size: 3rem; }
+            button { min-width: 80px; padding: 8px 16px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <section id="timer-section">
+            <div id="timer-display">40:00</div>
+            <div id="timer-controls">
+                <button id="start-btn">Start</button>
+                <button id="pause-btn">Pause</button>
+                <button id="reset-btn">Reset</button>
+                <button id="reset-heatmap-btn">Reset Data</button>
+                <button id="demo-btn">Demo</button>
+            </div>
+        </section>
+
+        <section id="heatmap-section">
+            <h2 style="margin-bottom: 15px; text-align: center;">2026 Activity</h2>
+            <div style="color: var(--text-secondary); text-align: center; margin-bottom: 15px; font-size: 0.9em;">
+                ← Scroll months →
+            </div>
+            <div id="heatmap-calendar"></div>
+            <div style="display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="calendar-cell empty" style="width: 12px; height: 12px;"></div>
+                    <span style="font-size: 0.8em;">0</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="calendar-cell level-1" style="width: 12px; height: 12px;"></div>
+                    <span style="font-size: 0.8em;">1</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="calendar-cell level-2" style="width: 12px; height: 12px;"></div>
+                    <span style="font-size: 0.8em;">2-3</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="calendar-cell level-3" style="width: 12px; height: 12px;"></div>
+                    <span style="font-size: 0.8em;">4-5</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="calendar-cell level-4" style="width: 12px; height: 12px;"></div>
+                    <span style="font-size: 0.8em;">6+</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ALL JAVASCRIPT EMBEDDED HERE
+        const STORAGE_KEY = 'focus_activity_v1';
+        const DURATION_KEY = 'focus_timer_duration_minutes';
+        
+        // Timer variables
+        let timerInterval = null;
+        let totalDuration = 40 * 60;
+        let remainingTime = totalDuration;
+        let startTime = null;
+        let isRunning = false;
+        let isEditing = false;
+        
+        // DOM elements
+        const timerDisplay = document.getElementById('timer-display');
+        const startBtn = document.getElementById('start-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const resetHeatmapBtn = document.getElementById('reset-heatmap-btn');
+        const demoBtn = document.getElementById('demo-btn');
+        const heatmapCalendar = document.getElementById('heatmap-calendar');
+        
+        // Load saved duration
+        function loadTimerDuration() {
+            const duration = localStorage.getItem(DURATION_KEY);
+            return duration ? parseInt(duration, 10) : 40;
+        }
+        
+        // Initialize
+        totalDuration = loadTimerDuration() * 60;
+        remainingTime = totalDuration;
+        
+        // Format time
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+        
+        // Update display
+        function updateTimerDisplay() {
+            timerDisplay.textContent = formatTime(remainingTime);
+        }
+        
+        // Timer logic
+        function updateRemainingTime() {
+            if (!startTime || !isRunning) return;
+            
+            const now = Date.now();
+            const elapsedSeconds = Math.floor((now - startTime) / 1000);
+            const newRemaining = Math.max(0, totalDuration - elapsedSeconds);
+            
+            remainingTime = newRemaining;
+            updateTimerDisplay();
+            
+            if (remainingTime <= 0) {
+                handleTimerComplete();
+            }
+        }
+        
+        function startTimer() {
+            if (isRunning || isEditing) return;
+            
+            isRunning = true;
+            startTime = Date.now() - ((totalDuration - remainingTime) * 1000);
+            
+            timerInterval = setInterval(updateRemainingTime, 100);
+            updateTimerDisplay();
+            startBtn.disabled = true;
+        }
+        
+        function pauseTimer() {
+            if (!isRunning) return;
+            
+            isRunning = false;
+            clearInterval(timerInterval);
+            timerInterval = null;
+            updateRemainingTime();
+            startBtn.disabled = false;
+        }
+        
+        function resetTimer() {
+            pauseTimer();
+            remainingTime = totalDuration;
+            updateTimerDisplay();
+            startBtn.disabled = false;
+        }
+        
+        function handleTimerComplete() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+            
+            // Visual feedback
+            timerDisplay.style.color = '#39d353';
+            setTimeout(() => { timerDisplay.style.color = ''; }, 300);
+            
+            // Update heatmap
+            const today = new Date().toISOString().split('T')[0];
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            data[today] = (data[today] || 0) + 1;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            
+            // Update display
+            renderHeatmap();
+            
+            // Reset timer
+            setTimeout(() => {
+                remainingTime = totalDuration;
+                updateTimerDisplay();
+                startBtn.disabled = false;
+            }, 500);
+        }
+        
+        // Heatmap functions
+        function renderHeatmap() {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+            heatmapCalendar.innerHTML = '';
+            
+            for (let month = 0; month < 12; month++) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'month-container';
+                
+                // Month label
+                const label = document.createElement('div');
+                label.className = 'month-label';
+                label.textContent = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month] + ' 2026';
+                monthDiv.appendChild(label);
+                
+                // Month grid
+                const grid = document.createElement('div');
+                grid.className = 'month-grid';
+                
+                const daysInMonth = new Date(2026, month + 1, 0).getDate();
+                const firstDay = new Date(2026, month, 1).getDay();
+                
+                // Empty cells for padding
+                let startOffset = firstDay === 0 ? 6 : firstDay - 1;
+                for (let i = 0; i < startOffset; i++) {
+                    const empty = document.createElement('div');
+                    empty.className = 'calendar-cell empty-padding';
+                    empty.style.visibility = 'hidden';
+                    grid.appendChild(empty);
+                }
+                
+                // Days of month
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'calendar-cell';
+                    
+                    const dateStr = `2026-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                    const count = data[dateStr] || 0;
+                    
+                    // Set intensity class
+                    if (count === 0) cell.classList.add('empty');
+                    else if (count === 1) cell.classList.add('level-1');
+                    else if (count <= 3) cell.classList.add('level-2');
+                    else if (count <= 5) cell.classList.add('level-3');
+                    else cell.classList.add('level-4');
+                    
+                    // Tooltip
+                    cell.title = `${dateStr}: ${count} session${count !== 1 ? 's' : ''}`;
+                    
+                    grid.appendChild(cell);
+                }
+                
+                monthDiv.appendChild(grid);
+                heatmapCalendar.appendChild(monthDiv);
+            }
+        }
+        
+        // Reset heatmap
+        function resetHeatmap() {
+            if (confirm('Reset all activity data?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                renderHeatmap();
+            }
+        }
+        
+        // Demo data
+        function loadDemoData() {
+            if (confirm('Load demo data?')) {
+                const demoData = {};
+                for (let month = 0; month < 12; month++) {
+                    for (let day = 1; day <= 31; day++) {
+                        const dateStr = `2026-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                        // Random activity
+                        const rand = Math.random();
+                        if (rand < 0.3) demoData[dateStr] = 0;
+                        else if (rand < 0.6) demoData[dateStr] = 1;
+                        else if (rand < 0.8) demoData[dateStr] = 2;
+                        else if (rand < 0.95) demoData[dateStr] = 3;
+                        else demoData[dateStr] = 4;
+                    }
+                }
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(demoData));
+                renderHeatmap();
+            }
+        }
+        
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        resetHeatmapBtn.addEventListener('click', resetHeatmap);
+        demoBtn.addEventListener('click', loadDemoData);
+        
+        // Edit timer on click
+        timerDisplay.addEventListener('click', function() {
+            if (isRunning) return;
+            
+            const minutes = prompt('Enter minutes (1-240):', Math.floor(totalDuration / 60));
+            if (minutes && !isNaN(minutes) && minutes >= 1 && minutes <= 240) {
+                totalDuration = minutes * 60;
+                remainingTime = totalDuration;
+                localStorage.setItem(DURATION_KEY, minutes);
+                updateTimerDisplay();
+            }
+        });
+        
+        // Initialize
+        updateTimerDisplay();
+        renderHeatmap();
+        
+        console.log('Focus Tracker loaded!');
+    </script>
+</body>
+</html>
